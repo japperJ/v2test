@@ -7,6 +7,7 @@ import { SiteList } from './pages/SiteList';
 import { SiteEditor } from './pages/SiteEditor';
 import { AccessLogs } from './pages/AccessLogs';
 import { ProtectedPage } from './pages/ProtectedPage';
+import { GdprAdmin } from './pages/GdprAdmin';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +71,16 @@ export default function App() {
               <RequireAuth>
                 <Layout>
                   <ProtectedPage />
+                </Layout>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/gdpr"
+            element={
+              <RequireAuth>
+                <Layout>
+                  <GdprAdmin />
                 </Layout>
               </RequireAuth>
             }
