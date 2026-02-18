@@ -9,6 +9,8 @@ import { accessLogRoutes } from './routes/accessLogs.js';
 import { protectedRoutes } from './routes/protected.js';
 import { geoRoutes } from './routes/geo.js';
 import { authRoutes } from './routes/auth.js';
+import { gdprRoutes } from './routes/gdpr.js';
+import { artifactRoutes } from './routes/artifacts.js';
 import { geoIPService } from './services/GeoIPService.js';
 import { siteService } from './services/SiteService.js';
 import { ipAccessControl } from './middleware/ipAccessControl.js';
@@ -87,6 +89,8 @@ export function buildApp() {
   app.register(accessLogRoutes);
   app.register(protectedRoutes);
   app.register(geoRoutes);
+  app.register(gdprRoutes);
+  app.register(artifactRoutes);
 
   return app;
 }

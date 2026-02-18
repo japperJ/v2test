@@ -43,6 +43,24 @@ vi.mock('../../utils/getClientIP.js', () => ({
   getClientIP: vi.fn().mockReturnValue('1.2.3.4'),
 }));
 
+vi.mock('../../queues/screenshotQueue.js', () => ({
+  enqueueScreenshotJob: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../services/AuditService.js', () => ({
+  auditService: { record: vi.fn().mockResolvedValue(undefined) },
+  AUDIT_ACTIONS: {
+    LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+    LOGIN_FAILED: 'LOGIN_FAILED',
+    LOGOUT: 'LOGOUT',
+    SITE_CREATE: 'SITE_CREATE',
+    SITE_UPDATE: 'SITE_UPDATE',
+    SITE_DELETE: 'SITE_DELETE',
+    GDPR_EXPORT: 'GDPR_EXPORT',
+    GDPR_PURGE: 'GDPR_PURGE',
+  },
+}));
+
 import { buildApp } from '../../app.js';
 import { geofenceService } from '../../services/GeofenceService.js';
 import { accessLogService } from '../../services/AccessLogService.js';
