@@ -14,7 +14,7 @@ export async function artifactRoutes(app: FastifyInstance) {
     Querystring: { timestamp: string };
   }>(
     '/api/admin/access-logs/:id/screenshot-url',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { schema: { tags: ['admin'] }, preHandler: [authenticate, requireRole('admin')] },
     async (request, reply) => {
       const { id } = request.params;
       const { timestamp } = request.query;

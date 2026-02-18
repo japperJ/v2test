@@ -7,7 +7,7 @@ import { auditService, AUDIT_ACTIONS } from '../services/AuditService.js';
 
 export async function siteRoutes(app: FastifyInstance) {
   // Create site — admin only
-  app.post('/api/admin/sites', { preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
+  app.post('/api/admin/sites', { schema: { tags: ['admin'] }, preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
     const result = CreateSiteSchema.safeParse(request.body);
     if (!result.success) {
       return reply.status(400).send({ error: 'Validation error', details: result.error.flatten() });
@@ -47,20 +47,20 @@ export async function siteRoutes(app: FastifyInstance) {
   });
 
   // List sites — viewer can read
-  app.get('/api/admin/sites', { preHandler: [authenticate] }, async (_request, reply) => {
+  app.get('/api/admin/sites', { schema: { tags: ['admin'] }, preHandler: [authenticate] }, async (_request, reply) => {
     const sites = await siteService.findAll();
     return reply.send(sites);
   });
 
   // Get site by ID — viewer can read
-  app.get<{ Params: { id: string } }>('/api/admin/sites/:id', { preHandler: [authenticate] }, async (request, reply) => {
+  app.get<{ Params: { id: string } }>('/api/admin/sites/:id', { schema: { tags: ['admin'] }, preHandler: [authenticate] }, async (request, reply) => {
     const site = await siteService.findById(request.params.id);
     if (!site) return reply.status(404).send({ error: 'Not found' });
     return reply.send(site);
   });
 
   // Update site — admin only
-  app.patch<{ Params: { id: string } }>('/api/admin/sites/:id', { preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
+  app.patch<{ Params: { id: string } }>('/api/admin/sites/:id', { schema: { tags: ['admin'] }, preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
     const result = UpdateSiteSchema.safeParse(request.body);
     if (!result.success) {
       return reply.status(400).send({ error: 'Validation error', details: result.error.flatten() });
@@ -84,7 +84,7 @@ export async function siteRoutes(app: FastifyInstance) {
   });
 
   // Delete site — admin only
-  app.delete<{ Params: { id: string } }>('/api/admin/sites/:id', { preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
+  app.delete<{ Params: { id: string } }>('/api/admin/sites/:id', { schema: { tags: ['admin'] }, preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
     const deleted = await siteService.delete(request.params.id);
     if (!deleted) return reply.status(404).send({ error: 'Not found' });
     await auditService.record({

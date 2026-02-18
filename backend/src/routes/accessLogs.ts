@@ -8,7 +8,7 @@ export async function accessLogRoutes(app: FastifyInstance) {
   app.get<{
     Params: { siteId: string };
     Querystring: { allowed?: string; limit?: string; offset?: string };
-  }>('/api/admin/sites/:siteId/access-logs', { preHandler: [authenticate] }, async (request, reply) => {
+  }>('/api/admin/sites/:siteId/access-logs', { schema: { tags: ['admin'] }, preHandler: [authenticate] }, async (request, reply) => {
     const { siteId } = request.params;
     const { allowed, limit, offset } = request.query;
 
@@ -29,7 +29,7 @@ export async function accessLogRoutes(app: FastifyInstance) {
       limit?: string;
       offset?: string;
     };
-  }>('/api/admin/audit-log', { preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
+  }>('/api/admin/audit-log', { schema: { tags: ['admin'] }, preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
     const { action, userId, limit, offset } = request.query;
 
     const params: unknown[] = [];

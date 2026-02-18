@@ -9,7 +9,7 @@ export async function gdprRoutes(app: FastifyInstance) {
   // Returns all access log rows for a given anonymized IP address as JSON or CSV.
   app.post<{ Body: { anonymizedIp?: string; format?: string; siteId?: string } }>(
     '/api/admin/gdpr/export',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { schema: { tags: ['admin'] }, preHandler: [authenticate, requireRole('admin')] },
     async (request, reply) => {
       const { anonymizedIp, format = 'json', siteId } = request.body ?? {};
 
@@ -62,7 +62,7 @@ export async function gdprRoutes(app: FastifyInstance) {
   // Deletes all access log rows for a given anonymized IP address.
   app.delete<{ Body: { anonymizedIp?: string; siteId?: string } }>(
     '/api/admin/gdpr/purge',
-    { preHandler: [authenticate, requireRole('admin')] },
+    { schema: { tags: ['admin'] }, preHandler: [authenticate, requireRole('admin')] },
     async (request, reply) => {
       const { anonymizedIp, siteId } = request.body ?? {};
 
