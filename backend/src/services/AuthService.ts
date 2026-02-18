@@ -96,19 +96,22 @@ export class AuthService {
     return { accessToken, refreshToken: newRawToken };
   }
 
-  async logout(rawToken: string): Promise<void> {
+  // Returns the user_id that was logged out, or null if the token was not found.
+  // Callers can use this for audit logging without an extra DB round-trip.
+  async logout(rawToken: string): Promise<string | null> {
     const { rows } = await pool.query(
-      'SELECT id, token_hash FROM refresh_tokens WHERE revoked = false',
+      'SELECT id, user_id, token_hash FROM refresh_tokens WHERE revoked = false',
       []
     );
 
     for (const row of rows) {
       if (await bcrypt.compare(rawToken, row.token_hash)) {
         await pool.query('UPDATE refresh_tokens SET revoked = true WHERE id = $1', [row.id]);
-        return;
+        return row.user_id;
       }
     }
     // Idempotent — no-op if token not found
+    return null;
   }
 
   async getMe(userId: string): Promise<{ id: string; email: string; role: UserRole }> {

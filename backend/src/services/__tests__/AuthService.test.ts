@@ -137,25 +137,28 @@ describe('AuthService', () => {
   });
 
   describe('logout', () => {
-    it('revokes the matching token', async () => {
-      const tokenRow = { id: 'token-id-1', token_hash: 'hashed-token' };
+    it('revokes the matching token and returns user_id', async () => {
+      const tokenRow = { id: 'token-id-1', user_id: 'user-uuid-1', token_hash: 'hashed-token' };
       mockPool.query
         .mockResolvedValueOnce({ rows: [tokenRow] }) // SELECT non-revoked tokens
         .mockResolvedValueOnce({ rows: [] });        // UPDATE SET revoked
       mockBcrypt.compare.mockResolvedValueOnce(true);
 
-      await service.logout('raw-token');
+      const userId = await service.logout('raw-token');
 
+      expect(userId).toBe('user-uuid-1');
       expect(mockPool.query).toHaveBeenCalledTimes(2);
       const [updateSql, updateParams] = mockPool.query.mock.calls[1];
       expect(updateSql).toContain('UPDATE refresh_tokens SET revoked = true');
       expect(updateParams[0]).toBe('token-id-1');
     });
 
-    it('is idempotent when token not found', async () => {
+    it('is idempotent when token not found — returns null', async () => {
       mockPool.query.mockResolvedValueOnce({ rows: [] });
 
-      await expect(service.logout('unknown-token')).resolves.toBeUndefined();
+      const userId = await service.logout('unknown-token');
+
+      expect(userId).toBeNull();
       expect(mockPool.query).toHaveBeenCalledTimes(1);
     });
   });

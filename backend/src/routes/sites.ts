@@ -3,6 +3,7 @@ import { siteService } from '../services/SiteService.js';
 import { CreateSiteSchema, UpdateSiteSchema } from '../models/Site.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { requireRole } from '../middleware/requireRole.js';
+import { auditService, AUDIT_ACTIONS } from '../services/AuditService.js';
 
 export async function siteRoutes(app: FastifyInstance) {
   // Create site — admin only
@@ -20,9 +21,25 @@ export async function siteRoutes(app: FastifyInstance) {
 
     try {
       const site = await siteService.create(result.data);
+      await auditService.record({
+        actorUserId: request.user?.userId,
+        action: AUDIT_ACTIONS.SITE_CREATE,
+        entityType: 'site',
+        entityId: site.id,
+        success: true,
+        metadata: { slug: site.slug },
+      });
       return reply.status(201).send(site);
     } catch (err: unknown) {
       if (isUniqueViolation(err)) {
+        await auditService.record({
+          actorUserId: request.user?.userId,
+          action: AUDIT_ACTIONS.SITE_CREATE,
+          entityType: 'site',
+          entityId: null,
+          success: false,
+          error: 'unique_violation',
+        });
         return reply.status(409).send({ error: 'Slug or hostname already exists' });
       }
       throw err;
@@ -56,6 +73,13 @@ export async function siteRoutes(app: FastifyInstance) {
 
     const site = await siteService.update(request.params.id, result.data);
     if (!site) return reply.status(404).send({ error: 'Not found' });
+    await auditService.record({
+      actorUserId: request.user?.userId,
+      action: AUDIT_ACTIONS.SITE_UPDATE,
+      entityType: 'site',
+      entityId: site.id,
+      success: true,
+    });
     return reply.send(site);
   });
 
@@ -63,6 +87,13 @@ export async function siteRoutes(app: FastifyInstance) {
   app.delete<{ Params: { id: string } }>('/api/admin/sites/:id', { preHandler: [authenticate, requireRole('admin')] }, async (request, reply) => {
     const deleted = await siteService.delete(request.params.id);
     if (!deleted) return reply.status(404).send({ error: 'Not found' });
+    await auditService.record({
+      actorUserId: request.user?.userId,
+      action: AUDIT_ACTIONS.SITE_DELETE,
+      entityType: 'site',
+      entityId: request.params.id,
+      success: true,
+    });
     return reply.status(204).send();
   });
 }

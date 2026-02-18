@@ -3,6 +3,7 @@ import '@fastify/cookie';
 import { authService } from '../services/AuthService.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { LoginSchema } from '../models/User.js';
+import { auditService, AUDIT_ACTIONS } from '../services/AuditService.js';
 
 const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 const COOKIE_PATH = '/api/auth';
@@ -29,10 +30,27 @@ export async function authRoutes(app: FastifyInstance) {
         maxAge: REFRESH_TOKEN_MAX_AGE,
       });
 
+      await auditService.record({
+        actorUserId: user.id,
+        action: AUDIT_ACTIONS.LOGIN_SUCCESS,
+        entityType: 'user',
+        entityId: user.id,
+        success: true,
+      });
+
       return reply.send({ accessToken, user });
     } catch (err: unknown) {
       const statusCode = (err as { statusCode?: number }).statusCode;
       if (statusCode === 401) {
+        await auditService.record({
+          actorUserId: null,
+          action: AUDIT_ACTIONS.LOGIN_FAILED,
+          entityType: 'user',
+          entityId: null,
+          success: false,
+          error: 'invalid_credentials',
+          metadata: { email: result.data.email },
+        });
         return reply.status(401).send({ error: 'Invalid email or password' });
       }
       throw err;
@@ -70,9 +88,18 @@ export async function authRoutes(app: FastifyInstance) {
   // POST /api/auth/logout
   app.post('/api/auth/logout', async (request, reply) => {
     const rawToken = request.cookies.refreshToken;
+    let userId: string | null = null;
     if (rawToken) {
-      await authService.logout(rawToken);
+      userId = await authService.logout(rawToken);
     }
+
+    await auditService.record({
+      actorUserId: userId,
+      action: AUDIT_ACTIONS.LOGOUT,
+      entityType: 'session',
+      entityId: null,
+      success: true,
+    });
 
     reply.clearCookie('refreshToken', { path: COOKIE_PATH });
     return reply.status(204).send();
