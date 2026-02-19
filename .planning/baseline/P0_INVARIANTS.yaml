@@ -1,0 +1,82 @@
+version: 1
+baseline: P0
+scope:
+  repo: JP Dynamic Agent System (v2)
+  includes:
+    - .github/agents
+    - .planning (taxonomy only)
+
+invariants:
+  # Agent file existence
+  - id: P0-AGENTS-EXIST
+    kind: file_exists
+    paths:
+      - .github/agents/orchestrator.agent.md
+      - .github/agents/researcher.agent.md
+      - .github/agents/planner.agent.md
+      - .github/agents/coder.agent.md
+      - .github/agents/designer.agent.md
+      - .github/agents/verifier.agent.md
+      - .github/agents/debugger.agent.md
+
+  # Orchestrator: delegation contract
+  - id: P0-ORCH-NO-IMPLEMENT
+    kind: file_contains_all
+    path: .github/agents/orchestrator.agent.md
+    must_contain:
+      - "Never implements directly"
+      - "You coordinate work but NEVER implement anything yourself"
+
+  - id: P0-ORCH-DELEGATION
+    kind: file_contains
+    path: .github/agents/orchestrator.agent.md
+    must_contain:
+      - "You MUST delegate to subagents using the `runSubagent` tool"
+
+  - id: P0-ORCH-RELATIVE-PATHS
+    kind: file_contains
+    path: .github/agents/orchestrator.agent.md
+    must_contain:
+      - "always reference paths as relative"
+
+  # Verifier: independent verification
+  - id: P0-VERIFIER-INDEPENDENCE
+    kind: file_contains
+    path: .github/agents/verifier.agent.md
+    must_contain:
+      - "Do NOT trust SUMMARY.md"
+
+  - id: P0-VERIFIER-GOAL-BACKWARD
+    kind: file_contains
+    path: .github/agents/verifier.agent.md
+    must_contain:
+      - "Task completion ≠ Goal achievement"
+
+  # Researcher: research-only boundary
+  - id: P0-RESEARCHER-NO-IMPLEMENT
+    kind: file_contains
+    path: .github/agents/researcher.agent.md
+    must_contain:
+      - "you never implement"
+
+  # Planning taxonomy
+  - id: P0-PLANNING-TAXONOMY
+    kind: file_exists
+    paths:
+      - .planning/REQUIREMENTS.md
+      - .planning/ROADMAP.md
+      - .planning/STATE.md
+
+  # Planning artifact structure expectations
+  - id: P0-PLANNING-PHASE-STRUCTURE
+    kind: directory_exists
+    paths:
+      - .planning/phases
+      - .planning/research
+
+  # Critical workflow principles documented in orchestrator
+  - id: P0-PLANS-ARE-PROMPTS
+    kind: file_contains
+    path: .github/agents/orchestrator.agent.md
+    must_contain:
+      - "Plans are prompts"

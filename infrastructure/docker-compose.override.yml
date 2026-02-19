@@ -1,0 +1,14 @@
+version: '3.9'
+
+# Auto-generated port override — remaps only conflicting host ports.
+# Docker Compose merges this with docker-compose.yml automatically.
+# Internal container-to-container networking is unaffected.
+
+services:
+  postgres:
+    ports:
+      - "5435:5432"   # 5432 → gpscordinateapp-db-1, 5433 → temp-gps-reference-db-1, 5434 → geo-ip-postgres
+
+  backend:
+    ports:
+      - "3100:3000"   # 3000 → proxy-backend, 3001-3003 also taken by other containers

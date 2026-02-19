@@ -1,0 +1,93 @@
+# Extensions Registry
+# Schema version: 1
+# Canonical source of truth for all approved skills and agents in this repo.
+#
+# Governance rules:
+#   1. An entry MUST NOT have status: active without an approved EDR at the path listed in `edr`.
+#   2. All fields marked "(required)" must be populated before an entry is committed.
+#   3. `wiring_targets` must list at least one agent name for any active skill.
+#   4. Registry changes are additive-only (new entries, status updates, deprecation fields).
+#      Deletions require a superseding EDR.
+#
+# Bootstrap state: The registry is intentionally empty until the first EDR is approved.
+# Add the first real entry when EDR-YYYYMMDD-0001-<slug>.md is approved.
+#
+# Example entry (commented out — copy and uncomment when registering a real extension):
+#
+# extensions:
+#   - id: "ext-skill-example-name"             # (required) stable id: ext-<kind>-<name>
+#     kind: "skill"                             # (required) skill | agent
+#     name: "example-name"                     # (required) must match .github/skills/<name>/ dir (skills) or .agent.md stem (agents)
+#     purpose: >                               # (required) 1–2 sentences, keyword-rich
+#       One to two sentences describing what this extension does and when it is invoked.
+#     owner: "team-or-person"                  # (required)
+#     status: "proposed"                       # (required) active | deprecated | proposed | rejected
+#     scope: "planning docs only"              # (required) what the extension is allowed to influence
+#     wiring_targets:                          # (required for skills; at least one agent name)
+#       - "Planner"
+#       - "Coder"
+#     edr: ".planning/extensions/edr/EDR-YYYYMMDD-NNNN-<slug>.md"  # (required for active; must exist)
+#     source_path: ".github/skills/example-name/"  # (required) .github/skills/<name>/ for skills; .github/agents/<file>.agent.md for agents
+#     created: "YYYY-MM-DD"                    # (required) ISO date
+#     updated: "YYYY-MM-DD"                    # (required) ISO date; update on any field change
+#     tags:                                    # (optional)
+#       - "keyword"
+#     depends_on: []                           # (optional) list of other ext ids this depends on
+#     # deprecation:                           # (optional; populate when status changes to deprecated)
+#     #   reason: ""
+#     #   replaced_by: ""
+#     #   sunset_date: ""
+
+version: 1
+last_updated: "2026-02-18"
+
+extensions:
+  - id: "ext-skill-extension-verifier"
+    kind: "skill"
+    name: "extension-verifier"
+    purpose: >
+      Verifies that a new or updated extension in the JP Dynamic Agent System correctly completed
+      the full governance loop (EDR approved → registry active → wiring evidenced → P0 smoke checks
+      pass → tooling evidence captured) and produces auditable VERIFICATION.md evidence for the phase.
+    owner: "JP Dynamic Agent System"
+    status: "active"
+    scope: "Extension-loop verification — governance alignment, registry correctness, operational wiring evidence, P0 regression checks, and tooling host evidence capture"
+    wiring_targets:
+      - "Verifier"
+      - "Orchestrator"
+    edr: ".planning/extensions/edr/EDR-20260218-0002-extension-verifier.md"
+    source_path: ".github/skills/extension-verifier/"
+    created: "2026-02-18"
+    updated: "2026-02-18"
+    tags:
+      - "governance"
+      - "verification"
+      - "wiring"
+      - "p0"
+    depends_on: []
+
+  - id: "ext-skill-extension-coordinator"
+    kind: "skill"
+    name: "extension-coordinator"
+    purpose: >
+      Governs the controlled creation of new skills and agents in the JP Dynamic Agent System.
+      Provides a step-by-step EDR → Gate A–D decision → create → register → wire → verify playbook
+      that any agent can invoke when a repeatable workflow gap requires a new extension.
+    owner: "JP Dynamic Agent System"
+    status: "active"
+    scope: "Extension creation governance — the controlled flow for proposing, approving, creating, registering, wiring, and verifying new skills and agents"
+    wiring_targets:
+      - "Orchestrator"
+      - "Researcher"
+      - "Planner"
+      - "Coder"
+    edr: ".planning/extensions/edr/EDR-20260218-0001-extension-coordinator.md"
+    source_path: ".github/skills/extension-coordinator/"
+    created: "2026-02-18"
+    updated: "2026-02-18"
+    tags:
+      - "governance"
+      - "extension-lifecycle"
+      - "edr"
+      - "skill-first"
+    depends_on: []

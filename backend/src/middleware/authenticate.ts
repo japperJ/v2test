@@ -2,9 +2,9 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import * as jwt from 'jsonwebtoken';
 import { UserRole } from '../models/User.js';
 
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: { userId: string; role: UserRole };
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: { userId: string; role: UserRole };
   }
 }
 

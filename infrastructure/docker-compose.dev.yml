@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ../backend/src:/app/src
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+
+  worker:
+    build:
+      context: ../workers
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ../workers/src:/app/src
+    command: npm run dev
+    environment:
+      NODE_ENV: development

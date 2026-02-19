@@ -1,5 +1,4 @@
 import { Queue } from 'bullmq';
-import IORedis from 'ioredis';
 
 export interface ScreenshotJobPayload {
   accessLogId: string;
@@ -15,11 +14,19 @@ let screenshotQueue: Queue<ScreenshotJobPayload> | null = null;
 
 function getQueue(): Queue<ScreenshotJobPayload> {
   if (!screenshotQueue) {
-    const redis = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379', {
-      maxRetriesPerRequest: null,
-    });
+    const redisUrl = new URL(process.env.REDIS_URL || 'redis://localhost:6379');
+
+    const connection = {
+      host: redisUrl.hostname,
+      port: Number(redisUrl.port || 6379),
+      username: redisUrl.username || undefined,
+      password: redisUrl.password || undefined,
+      db: redisUrl.pathname && redisUrl.pathname !== '/' ? Number(redisUrl.pathname.slice(1)) : undefined,
+      maxRetriesPerRequest: null as null,
+    };
+
     screenshotQueue = new Queue<ScreenshotJobPayload>(SCREENSHOT_QUEUE_NAME, {
-      connection: redis,
+      connection,
     });
   }
   return screenshotQueue;

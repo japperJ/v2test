@@ -13,7 +13,6 @@ async function pingRedis(redisUrl: string): Promise<boolean> {
     connectTimeout: REDIS_TIMEOUT_MS,
     maxRetriesPerRequest: 0,
     enableOfflineQueue: false,
-    lazyConnect: true,
   });
   try {
     await client.ping();

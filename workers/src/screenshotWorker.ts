@@ -1,5 +1,4 @@
 import { Worker, Job } from 'bullmq';
-import IORedis from 'ioredis';
 import { chromium } from 'playwright';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from './s3Client.js';
@@ -52,9 +51,16 @@ async function processScreenshotJob(job: Job<ScreenshotJobPayload>): Promise<voi
 }
 
 export function startScreenshotWorker(): Worker<ScreenshotJobPayload> {
-  const redis = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379', {
-    maxRetriesPerRequest: null,
-  });
+  const redisUrl = new URL(process.env.REDIS_URL || 'redis://localhost:6379');
+
+  const connection = {
+    host: redisUrl.hostname,
+    port: Number(redisUrl.port || 6379),
+    username: redisUrl.username || undefined,
+    password: redisUrl.password || undefined,
+    db: redisUrl.pathname && redisUrl.pathname !== '/' ? Number(redisUrl.pathname.slice(1)) : undefined,
+    maxRetriesPerRequest: null as null,
+  };
 
   const worker = new Worker<ScreenshotJobPayload>(
     SCREENSHOT_QUEUE_NAME,
@@ -69,7 +75,7 @@ export function startScreenshotWorker(): Worker<ScreenshotJobPayload> {
       }
     },
     {
-      connection: redis,
+      connection,
       concurrency: 2,
     }
   );
