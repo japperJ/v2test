@@ -15,7 +15,7 @@ export function SiteEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const isNew = id === 'new';
+  const isNew = !id || id === 'new';
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ['site', id],
@@ -38,6 +38,8 @@ export function SiteEditor() {
   });
 
   const [ipErrors, setIpErrors] = useState<{ allowlist?: string; denylist?: string }>({});
+  const [slugError, setSlugError] = useState<string | undefined>();
+  const [apiErrors, setApiErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (existing) {
@@ -65,6 +67,12 @@ export function SiteEditor() {
       queryClient.invalidateQueries({ queryKey: ['site', id] });
       navigate(`/sites/${saved.id}/edit`);
     },
+    onError: (err: unknown) => {
+      const data = (err as { response?: { data?: { details?: { fieldErrors?: Record<string, string[]> } } } }).response?.data;
+      if (data?.details?.fieldErrors) {
+        setApiErrors(data.details.fieldErrors);
+      }
+    },
   });
 
   function parseIPList(text: string): string[] {
@@ -91,6 +99,15 @@ export function SiteEditor() {
     }
   }
 
+  function normalizeSlug(value: string): string {
+    return value
+      .toLowerCase()
+      .replace(/[\s.]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const allowlist = parseIPList(form.ip_allowlist);
@@ -103,6 +120,13 @@ export function SiteEditor() {
       return;
     }
     setIpErrors({});
+
+    if (!/^[a-z0-9-]+$/.test(form.slug)) {
+      setSlugError('Slug must contain only lowercase letters, numbers, and hyphens');
+      return;
+    }
+    setSlugError(undefined);
+    setApiErrors({});
 
     saveMutation.mutate({
       slug: form.slug,
@@ -118,8 +142,8 @@ export function SiteEditor() {
         ? parseCountryList(form.country_denylist)
         : null,
       block_vpn_proxy: form.block_vpn_proxy,
-      geofence_polygon: form.geofence_polygon,
       enabled: form.enabled,
+      ...(isNew ? {} : { geofence_polygon: form.geofence_polygon }),
     });
   }
 
@@ -155,14 +179,22 @@ export function SiteEditor() {
           </FieldRow>
           <FieldRow label="Slug" required>
             <input
-              className="input"
+              className={`input ${slugError || apiErrors.slug ? 'border-red-400' : ''}`}
               value={form.slug}
-              onChange={(e) => setForm({ ...form, slug: e.target.value })}
+              onChange={(e) => {
+                const normalized = normalizeSlug(e.target.value);
+                setForm({ ...form, slug: normalized });
+                setSlugError(undefined);
+                setApiErrors((prev) => ({ ...prev, slug: [] }));
+              }}
               required
               placeholder="my-site"
-              pattern="[a-z0-9-]+"
             />
-            <p className="text-xs text-gray-500 mt-1">Lowercase letters, numbers, hyphens only</p>
+            {(slugError || apiErrors.slug?.[0]) ? (
+              <p className="text-red-600 text-xs mt-1">{slugError ?? apiErrors.slug?.[0]}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">Lowercase letters, numbers, hyphens only (auto-normalized)</p>
+            )}
           </FieldRow>
           <FieldRow label="Hostname">
             <input
@@ -292,7 +324,14 @@ export function SiteEditor() {
             Cancel
           </Link>
           {saveMutation.isError && (
-            <p className="text-red-600 text-sm">Failed to save. Please try again.</p>
+            <p className="text-red-600 text-sm">
+              {Object.keys(apiErrors).length > 0
+                ? `Validation error: ${Object.entries(apiErrors)
+                    .filter(([, errs]) => errs.length > 0)
+                    .map(([field, errs]) => `${field}: ${errs[0]}`)
+                    .join(', ')}`
+                : 'Failed to save. Please try again.'}
+            </p>
           )}
         </div>
       </form>

@@ -7,7 +7,7 @@ export interface GeoJSONPolygon {
 
 export const SiteSchema = z.object({
   id: z.string().uuid(),
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
   hostname: z.string().nullable().optional(),
   name: z.string().min(1).max(255),
   access_mode: z.enum(['disabled', 'ip_only', 'geo_only', 'ip_and_geo']).default('disabled'),
@@ -30,7 +30,16 @@ export const CreateSiteSchema = SiteSchema.pick({
   slug: true,
   name: true,
 }).extend({
-  hostname: z.string().regex(/^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/).nullable().optional(),
+  hostname: z.preprocess(
+    (v) => (v === '' ? null : v),
+    z.string()
+      .regex(
+        /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+        'Hostname must be a valid domain (e.g. example.com)'
+      )
+      .nullable()
+      .optional()
+  ),
   access_mode: z.enum(['disabled', 'ip_only', 'geo_only', 'ip_and_geo']).default('disabled'),
   ip_allowlist: z.array(z.string()).nullable().optional(),
   ip_denylist: z.array(z.string()).nullable().optional(),

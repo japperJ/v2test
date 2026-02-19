@@ -1,17 +1,8 @@
 import { useEffect, useRef } from 'react';
-
-// Leaflet and Leaflet.draw are loaded as CDN globals
-declare const L: typeof import('leaflet') & {
-  drawLocal: unknown;
-  Draw: {
-    Event: {
-      CREATED: string;
-      EDITED: string;
-      DELETED: string;
-    };
-  };
-  DrawToolbar: unknown;
-};
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw';
+import 'leaflet-draw/dist/leaflet.draw.css';
 
 interface GeoJSONPolygon {
   type: 'Polygon';

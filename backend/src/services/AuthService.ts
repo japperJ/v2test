@@ -1,5 +1,5 @@
-import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import pool from '../db/pool.js';
 import { UserRole } from '../models/User.js';

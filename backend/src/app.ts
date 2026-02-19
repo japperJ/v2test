@@ -154,13 +154,16 @@ export function buildApp() {
   // --- Health route (no rate limit) ---
   app.register(healthRoutes);
 
-  // --- Auth routes: 10 req / 15 min per IP ---
+  // --- Auth routes: 100 req / 15 min (dev) or 10 req / 15 min (prod) per IP ---
+  const authRateLimit = process.env.NODE_ENV === 'production'
+    ? { max: 10, timeWindow: '15 minutes' }
+    : { max: 100, timeWindow: '15 minutes' };
   app.register(async (scope) => {
     if (!isTest && redisClient) {
       await scope.register(rateLimit, {
         global: true,
-        max: 10,
-        timeWindow: '15 minutes',
+        max: authRateLimit.max,
+        timeWindow: authRateLimit.timeWindow,
         redis: redisClient,
         keyGenerator: (req: FastifyRequest) =>
           req.ip ?? (req.socket?.remoteAddress ?? 'unknown'),

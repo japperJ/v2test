@@ -12,7 +12,6 @@ async function pingRedis(redisUrl: string): Promise<boolean> {
   const client = new Redis(redisUrl, {
     connectTimeout: REDIS_TIMEOUT_MS,
     maxRetriesPerRequest: 0,
-    enableOfflineQueue: false,
   });
   try {
     await client.ping();

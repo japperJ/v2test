@@ -16,10 +16,10 @@ export function clearAccessToken(): void {
 }
 
 // Plain axios for auth endpoints that must not include a bearer token (avoids infinite retry)
-const plainAxios = axios.create({ baseURL: '/api' });
+const plainAxios = axios.create({ baseURL: '/api', withCredentials: true });
 
 // Authenticated axios instance — adds Authorization header and auto-refreshes on 401
-export const authApi = axios.create({ baseURL: '/api' });
+export const authApi = axios.create({ baseURL: '/api', withCredentials: true });
 
 authApi.interceptors.request.use((config) => {
   const token = getAccessToken();

@@ -1,5 +1,5 @@
 // Run with: npx tsx scripts/seed-admin.ts
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import pool from '../src/db/pool.js';
 
 const BCRYPT_ROUNDS = 12;

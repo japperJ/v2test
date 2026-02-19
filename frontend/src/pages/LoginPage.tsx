@@ -20,7 +20,8 @@ export function LoginPage() {
     try {
       const { data } = await axios.post<{ accessToken: string; user: unknown }>(
         '/api/auth/login',
-        { email, password }
+        { email, password },
+        { withCredentials: true }
       );
       setAccessToken(data.accessToken);
       queryClient.invalidateQueries({ queryKey: ['me'] });
@@ -58,6 +59,7 @@ export function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="email"
               required
             />
           </div>
@@ -72,6 +74,7 @@ export function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="current-password"
               required
             />
           </div>
